@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Mapa Interactivo de Cali</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html,body {margin:0;height:100%;}
+    #map {width:100%;height:100%;}
+    .panel {
+      position:absolute;top:10px;left:10px;z-index:1000;
+      background:#fff;padding:8px;border-radius:6px;font-family:sans-serif;
+    }
+    .panel input,.panel select {width:180px;padding:4px;margin-top:4px;}
+    .popup img {width:100%;border-radius:6px;margin-bottom:6px;}
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div class="panel">
+  <input id="busqueda" placeholder="Buscar lugar...">
+  <select id="filtro">
+    <option value="todos">Todos</option>
+    <option value="histórico">Histórico</option>
+    <option value="cultural">Cultural</option>
+    <option value="recreativo">Recreativo</option>
+    <option value="religioso">Religioso</option>
+    <option value="pago">De pago</option>
+  </select>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+ 
+  const map = L.map('map', {
+    maxBounds: [[3.35, -76.65], [3.55, -76.45]],
+    maxBoundsViscosity: 1.0
+  }).setView([3.4516, -76.5320], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    minZoom: 12, maxZoom: 18
+  }).addTo(map);
+
+
+  const lugares = [
+    {nombre:"Iglesia La Ermita",cat:"histórico",coords:[3.4516,-76.5320],
+      img:"https://lh3.googleusercontent.com/gps-cs-s/AC9h4nontHKZy3Bey2K4kN5nnkyU6rBUbI7_t8FdQSr3cw0jM1fDJg6UqMi2Jf3wdRykbOnNu3E_wTNdFp4qrIeXqMLUInxtZ0tOfjRwilsldsuQGJoz6C7Q11fymYBb_Oi9xNvIkhKYAw=s680-w680-h510-rw",
+      desc:"Iglesia neogótica, ícono de Cali.",
+      info:"Cra. 1, Cali. 7am-8pm"},
+    {nombre:"Museo La Tertulia",cat:"cultural",coords:[3.4502,-76.5453],
+      img:"https://lh3.googleusercontent.com/p/AF1QipMcHXYg-OVJnSpX7I8Fcy63otr9pJvnA07aoaDe=s680-w680-h510-rw",
+      desc:"Museo de arte moderno y centro cultural.",
+      info:"Cl. 5 #1-100. Mar-Dom 10am-6pm"},
+    {nombre:"Parque del Perro",cat:"recreativo",coords:[3.4331,-76.5290],
+      img:"data:image/jpeg;base64,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",
+      desc:"Parque urbano famoso por restaurantes y vida nocturna.",
+      info:"Barrio San Fernando. Abierto 24h"},
+    {nombre:"Cristo Rey",cat:"religioso",coords:[3.4359,-76.5648],
+      img:"https://www.elespectador.com/resizer/uT2ZxSd82Xujdw4UTfly2tOUoKo=/arc-anglerfish-arc2-prod-elespectador/public/UXO3W2SZMRFUFDL3K7F3DSMFIQ.jpg",
+      desc:"Monumento religioso con vista panorámica.",
+      info:"Cerro Cristo Rey. 8am-6pm"},
+    {nombre:"Zoológico de Cali",cat:"recreativo",coords:[3.4328,-76.5315],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzL0ek1MrUCSzVwjnraAEa0iOknaafpfx0HA&s",
+      desc:"Uno de los zoológicos más importantes de Colombia.",
+      info:"Cl. 14 #2 Oeste. 9am-4pm"},
+    {nombre:"Cerro de las Tres Cruces",cat:"recreativo",coords:[3.4673,-76.5455],
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Monumento_de_las_tres_cruces.jpg/330px-Monumento_de_las_tres_cruces.jpg",
+      desc:"Cerro con mirador y rutas de senderismo.",
+      info:"Acceso libre, recomendado en la mañana"},
+    {nombre:"Iglesia San Antonio",cat:"histórico",coords:[3.4498,-76.5411],
+      img:"https://images.mnstatic.com/4b/9a/4b9a7f657da0b59fbe30ecc81c0830c1.jpg",
+      desc:"Iglesia colonial en el tradicional barrio San Antonio.",
+      info:"Barrio San Antonio. 8am-7pm"},
+    {nombre:"Bulevar del Río",cat:"cultural",coords:[3.4509,-76.5374],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq1a02MbPB3eDH1mSeIzRJjmKkV6L-ZpZtAQ&s",
+      desc:"Paseo peatonal junto al río Cali, espacio cultural y recreativo.",
+      info:"Centro de Cali. Acceso libre"},
+    {nombre:"Plaza de Cayzedo",cat:"histórico",coords:[3.4515,-76.5322],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1KhzxPZOLy4WC5Q-Y7AyTHMxIbl_ZDFe18A&s",
+      desc:"Plaza principal de Cali, corazón histórico de la ciudad.",
+      info:"Centro de Cali. Acceso libre"},
+    {nombre:"Teatro Municipal Enrique Buenaventura",cat:"cultural",coords:[3.4521,-76.5350],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuOcRUkKAjWMlbfUigDH7DxAk5V8zpnEverA&s",
+      desc:"Teatro emblemático para eventos artísticos y culturales.",
+      info:"Cl. 7 #4-69, Centro"},
+    {nombre:"Museo Arqueológico de Calima",cat:"pago",coords:[3.4500,-76.5360],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2dv1pQOsatz6EyYMO0T-Mz9Is7thLtl1Ycg&s",
+      desc:"Museo que muestra piezas de la cultura prehispánica Calima.",
+      info:"Entrada aprox: $5.000 - $10.000 COP"},
+    {nombre:"Museo de Ciencias Naturales",cat:"pago",coords:[3.4525,-76.5400],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUrGpnd051wm5uCcvKj7fmghVhJsVq22Fi1w&s",
+      desc:"Museo con exposiciones de biodiversidad y geología.",
+      info:"Entrada aprox: $5.000 COP"},
+    {nombre:"Museo de la Salsa",cat:"pago",coords:[3.4470,-76.5220],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPD35SWAGpXZynw9xBcR_1nWmcq54-dSKsPA&s",
+      desc:"Espacio cultural sobre la historia de la salsa en Cali.",
+      info:"Entrada aprox: $5.000 COP"},
+    {nombre:"MUSA Cali (Museo de Arte Contemporáneo)",cat:"pago",coords:[3.4540,-76.5350],
+      img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGatDEaptuVYv-Q0vxPbnByFt6fpp8jVns9A&s",
+      desc:"Museo con exposiciones permanentes y temporales de arte contemporáneo.",
+      info:"Entrada nacionales: $10.000 COP / extranjeros: $20.000 COP"}
+  ];
+
+  const marcadores = [];
+  lugares.forEach(l=>{
+    const popup = `<div class="popup">
+      <img src="${l.img}"><b>${l.nombre}</b><br>
+      <i>${l.cat}</i><br>${l.desc}<br>${l.info}
+    </div>`;
+    const m = L.marker(l.coords).bindPopup(popup).addTo(map);
+    m.categoria = l.cat; m.nombre = l.nombre.toLowerCase();
+    marcadores.push(m);
+  });
+
+  
+  document.getElementById("filtro").onchange = filtrar;
+  document.getElementById("busqueda").oninput = filtrar;
+
+  function filtrar(){
+    const cat = document.getElementById("filtro").value;
+    const texto = document.getElementById("busqueda").value.toLowerCase();
+    marcadores.forEach(m=>{
+      const visible = (cat==="todos"||m.categoria===cat) && m.nombre.includes(texto);
+      if(visible){map.addLayer(m);} else {map.removeLayer(m);}
+    });
+  }
+</script>
+</body>
+</html>
